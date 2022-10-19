@@ -1,0 +1,193 @@
+install.packages("tidyverse")
+install.packages("lubridate")
+install.packages("ggplot2")
+library(tidyverse)  #helps wrangle data
+library(lubridate)  #helps wrangle date attributes
+library(ggplot2)  #helps visualize data
+
+install.packages("tidyverse")
+library(tidyverse)
+install.packages("ggplot2")
+library(ggplot2)
+library(lubridate)
+install.packages("lubridate")
+install.packages("dplyr")
+library(dplyr)
+install.packages("readr")
+library(readr)
+install.packages("janitor")
+library(janitor)
+install.packages("data.table")
+library(data.table)
+install.packages("tidyr")
+library(tidyr)
+
+#Retrieve or set the row or column names of a matrix-like object.
+colnames(Abril)
+colnames(Mayo)
+colnames(Junio)
+colnames(Julio)
+colnames(Agosto)
+colnames(Septiembre)
+colnames(Octubre)
+colnames(Noviembre)
+colnames(Diciembre)
+colnames(Enero)
+colnames(Febrero)
+colnames(Marzo)
+
+#See every column in a data frame
+glimpse(Abril)
+glimpse(Mayo)
+glimpse(Junio)
+glimpse(Julio)
+glimpse(Agosto)
+glimpse(Septiembre)
+glimpse(Octubre)
+glimpse(Noviembre)
+glimpse(Diciembre)
+glimpse(Enero)
+glimpse(Febrero)
+glimpse(Marzo)
+
+# Compare column identity
+compare_df_cols_same(Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre,Enero,Febrero,Marzo,verbose = FALSE)
+compare_df_cols_same(Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre,Enero,Febrero,Marzo,bind_method = "rbind")
+compare_df_cols(Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre,Enero,Febrero,Marzo,return="mismatch")
+
+# Modify type of variables
+Abril<-mutate(Abril,end_station_id=as.character(end_station_id),start_station_id=as.character(start_station_id))
+Mayo<-mutate(Mayo,end_station_id=as.character(end_station_id),start_station_id=as.character(start_station_id))
+Junio<-mutate(Junio,end_station_id=as.character(end_station_id),start_station_id=as.character(start_station_id))
+Julio<-mutate(Julio,end_station_id=as.character(end_station_id),start_station_id=as.character(start_station_id))
+Agosto<-mutate(Agosto,end_station_id=as.character(end_station_id),start_station_id=as.character(start_station_id))
+Septiembre<-mutate(Septiembre,end_station_id=as.character(end_station_id),start_station_id=as.character(start_station_id))
+Octubre<-mutate(Octubre,end_station_id=as.character(end_station_id),start_station_id=as.character(start_station_id))
+Noviembre<-mutate(Noviembre,end_station_id=as.character(end_station_id),start_station_id=as.character(start_station_id))
+
+
+#Stack individual data frames into one big data frame
+all_trip<-bind_rows(Abril,Mayo,Junio,Julio,Agosto,Septiembre,Octubre,Noviembre,Diciembre,Enero,Febrero,Marzo)
+
+#Eliminate columns that are not necessary for the analysis.
+all_trip<-all_trip%>%
+  select(-c(start_lat,start_lng,end_lat,end_lng))
+
+#Verify columns names (All_trip)
+colnames(all_trip)
+
+#Verify columns and rows (all_trip)
+dim.data.frame(all_trip)
+
+#Show first values of data frame "all_trip"
+ 
+#Verify data structure and types of data
+str(all_trip)
+
+#Rename columns to make them consistent.
+all_trip<-all_trip %>%
+          rename(Rider_ID=ride_id,Bike_ID=rideable_type,Start_time=started_at,End_time=ended_at,User_type=member_casual)
+glimpse(all_trip)
+        
+# Inspect the new table that has been created
+colnames(all_trip)  #List of column names
+nrow(all_trip)  #How many rows are in data frame?
+dim(all_trip)  #Dimensions of the data frame?
+head(all_trip)  #See the first 6 rows of data frame.  Also tail(all_trips)
+str(all_trip)  #See list of columns and data types (numeric, character, etc)
+summary(all_trip)  #Statistical summary of data. Mainly for numeric
+skim(all_trip)#See overview of data frame
+table(all_trip$User_type)#See variable
+table(all_trip$Bike_ID)#See variable
+
+# Format date time from Date column
+all_trip$Date <- as.Date(all_trip$Start_time)
+all_trip$month <- format(as.Date(all_trip$date), "%m")
+all_trip$day <- format(as.Date(all_trip$date), "%d")
+all_trip$year <- format(as.Date(all_trip$date), "%Y")
+all_trip$day_of_week <- format(as.Date(all_trip$date), "%A")
+
+#Add "Ride_length" column for arithmetic calculations
+all_trip$Ride_length<-difftime(all_trip$End_time,all_trip$Start_time)
+
+# Inspect the structure of the columns
+str(all_trip)
+
+# Converting Ride Length to numeric
+is.factor(all_trip$Ride_length)
+all_trip$Ride_length <- as.numeric(as.character(all_trip$Ride_length))
+is.numeric(all_trip$Ride_length)
+
+#Verify that there are no negative values of Ride_length 
+nrow(subset(all_trip,Ride_length <= 0))  
+
+#create a new version of the dataframe (v2) where no Ride_length <=0
+All_trips_v2 <- all_trip[!(all_trip$Ride_length <= 0),]
+
+#Analayze Ride_length statistical data
+mean(All_trips_v2$Ride_length) #straight average (total ride length / rides)
+median(All_trips_v2$Ride_length) #midpoint number in the ascending array of ride lengths
+max(All_trips_v2$Ride_length) #longest ride
+min(All_trips_v2$Ride_length) #shortest ride
+
+#Analyze Above but condesed
+summary(All_trips_v2$Ride_length)
+
+#Analyze Compare User_type (members vs casual)
+aggregate(All_trips_v2$Ride_length ~ All_trips_v2$User_type, FUN = mean)
+aggregate(All_trips_v2$Ride_length ~ All_trips_v2$User_type, FUN = median)
+aggregate(All_trips_v2$Ride_length ~ All_trips_v2$User_type, FUN = max)
+aggregate(All_trips_v2$Ride_length ~ All_trips_v2$User_type, FUN = min)
+
+# Analyze See the average ride time by each day for members vs casual users
+aggregate(All_trips_v2$Ride_length ~ All_trips_v2$User_type + All_trips_v2$day_of_week, FUN = mean)
+aggregate(All_trips_v2$Ride_length ~ All_trips_v2$User_type + All_trips_v2$Bike_ID, FUN = mean)
+
+#Summary by Ride_length
+summary(All_trips_v2$Ride_length)
+summary(All_trips_v2)
+summary(All_trips_v2$day_of_week)
+summary(All_trips_v2$Bike_ID)
+
+#Analyze riders data by Type and weekday
+All_trips_v2 %>% 
+  mutate(day_of_week= wday(Start_time, label = TRUE)) %>%  #creates weekday field using wday()
+  group_by(User_type, day_of_week) %>%  #groups by usertype and weekday
+  summarise(number_of_rides = n() %>%                          #calculates the number of rides and average duration 
+            average_duration = mean(Ride_length)) 
+  
+  
+#Visualize the number of rides by rider type
+All_trips_v2 %>% 
+  mutate(day_of_week= wday(Start_time, label = TRUE)) %>% 
+  group_by(User_type, day_of_week) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(Ride_length)) %>% 
+  ggplot(aes(x = day_of_week, y = number_of_rides, fill = User_type))+
+  theme(axis.text.x = element_text(angle = 30))+
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))+
+ labs(title="Numbers of rides by User type")+geom_col(position = "dodge")
+
+#Average duration by usertype
+All_trips_v2 %>% 
+  mutate(day_of_week = wday(Start_time, label = TRUE)) %>% 
+  group_by(User_type, day_of_week) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(Ride_length)) %>% 
+  ggplot(aes(x =day_of_week, y = average_duration, fill = User_type)) +
+  geom_col(position = "dodge")+
+  labs(title="Average duration by User type")
+
+#Trips by users type vs month
+All_trips_v2 %>%  
+  group_by(User_type, month) %>% 
+  summarise(number_of_rides = n()) %>% 
+  arrange(User_type, month)  %>% 
+  ggplot(aes(x = month, y = number_of_rides, fill = User_type)) +
+  labs(title ="Trips by User type Vs. Month") +
+  theme(axis.text.x = element_text(angle = 30)) +
+  geom_col(width=0.5, position = position_dodge(width=0.5)) +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+
+#Export data (.csv) to perform visualizations.
+write.csv(All_trips_v2,file = "Alltrips_v2.csv")
